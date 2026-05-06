@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}{{ game.name }} — JORDROP{% endblock %}
+{% block accent %}{{ game.accent_color }}{% endblock %}
+{% block content %}
+
+<style>
+:root { --accent: {{ game.accent_color }}; }
+.game-hero {
+  display: flex; align-items: center; gap: 3rem;
+  padding: 2.5rem 0 3rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 3rem;
+}
+.game-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 900; letter-spacing: 2px;
+  color: var(--accent);
+  text-shadow: 0 0 40px rgba(0,229,255,0.2);
+}
+.game-desc { color: var(--muted); margin-top: 0.75rem; max-width: 500px; }
+.stat-grid {
+  display: flex; gap: 2.5rem; margin-top: 1.5rem;
+}
+.stat { text-align: center; }
+.stat-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.8rem; font-weight: 700;
+  color: var(--accent);
+}
+.stat-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.7rem; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--muted);
+  margin-top: 0.25rem;
+}
+.game-nav {
+  display: flex; gap: 1rem; margin-bottom: 3rem;
+}
+.game-nav a {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700; font-size: 0.85rem;
+  text-transform: uppercase; letter-spacing: 1px;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--border);
+  color: var(--muted); text-decoration: none;
+  transition: all 0.2s;
+}
+.game-nav a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Kaggle data section */
+.data-source {
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  background: rgba(0,229,255,0.04);
+  border: 1px solid rgba(0,229,255,0.15);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.75rem; color: var(--muted);
+  letter-spacing: 1px;
+}
+.data-source span { color: var(--accent); }
+</style>
+
+<div class="game-hero">
+  <div>
+    <div class="game-title">{{ game.name }}</div>
+    <p class="game-desc">{{ game.description|default:"Explore teams, players and tournaments." }}</p>
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="stat-num">{{ game.teams.count }}</div>
+        <div class="stat-label">Teams</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">{{ game.players.count }}</div>
+        <div class="stat-label">Players</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">{{ game.tournaments.count }}</div>
+        <div class="stat-label">Tournaments</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="game-nav">
+  <a href="/game/{{ game.slug }}/teams/">Teams</a>
+  <a href="/game/{{ game.slug }}/players/">Players</a>
+  <a href="/tournaments/?game={{ game.slug }}">Tournaments</a>
+  <a href="/wiki/{{ game.slug }}/">Wiki</a>
+</div>
+
+{% if teams %}
+<div class="section-title">Top Teams</div>
+<div class="card-grid" style="margin-bottom: 3rem">
+  {% for team in teams %}
+  <div class="card">
+    <div class="card-accent" style="background: {{ game.accent_color }}"></div>
+    <div class="card-tag">{{ team.country|default:"Global" }}</div>
+    <h3>{{ team.name }}</h3>
+    <p>{{ team.players.count }} players{% if team.founded %} &bull; Est. {{ team.founded }}{% endif %}</p>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if tournaments %}
+<div class="section-title">Tournaments</div>
+{% for t in tournaments %}
+<div style="display:flex;align-items:center;gap:1rem;padding:0.875rem 1rem;border:1px solid var(--border);margin-bottom:0.5rem;background:var(--card)">
+  <span class="badge badge-{{ t.status }}">{{ t.get_status_display }}</span>
+  <span style="font-family:'Rajdhani',sans-serif;font-weight:600;flex:1">{{ t.name }}</span>
+  {% if t.prize_pool %}<span style="font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--accent)">{{ t.prize_pool }}</span>{% endif %}
+  <a href="/tournaments/{{ t.pk }}/" class="btn" style="padding:0.3rem 0.8rem;font-size:0.75rem">View</a>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="data-source">
+  📊 Stats enriched with public esports datasets &bull; <span>Data via Kaggle public datasets</span>
+</div>
+
+{% endblock %}

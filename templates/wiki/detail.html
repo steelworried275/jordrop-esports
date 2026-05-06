@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} — JORDROP Wiki{% endblock %}
+{% block content %}
+<div style="max-width:800px">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:1.5rem">
+    <a href="/game/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">{{ game.name }}</a>
+    / <a href="/wiki/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">Wiki</a>
+    / {{ article.title }}
+  </div>
+  <h1 style="font-family:'Orbitron',monospace;font-size:2rem;font-weight:700;margin-bottom:1.5rem">{{ article.title }}</h1>
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;color:var(--muted);margin-bottom:2rem">
+    By {{ article.author }} &bull; {{ article.updated_at|date:"M d, Y" }}
+  </div>
+  <div style="line-height:1.8;color:var(--text)">{{ article.content|linebreaks }}</div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Tournaments — JORDROP{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1>Tournaments</h1>
+  <p>Track every major esports event across all titles.</p>
+</div>
+
+<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:2.5rem">
+  <a href="/tournaments/" class="btn {% if not selected %}active{% endif %}" style="{% if not selected %}background:var(--accent);color:var(--bg){% endif %}">All</a>
+  {% for g in games %}
+  <a href="/tournaments/?game={{ g.slug }}" class="btn {% if selected == g.slug %}active{% endif %}"
+     style="{% if selected == g.slug %}background:var(--accent);color:var(--bg){% endif %}">{{ g.name }}</a>
+  {% endfor %}
+</div>
+
+<div style="display:flex;flex-direction:column;gap:0.75rem">
+{% for t in tournaments %}
+<a href="/tournaments/{{ t.pk }}/" style="text-decoration:none;color:inherit">
+<div style="display:grid;grid-template-columns:120px 1fr auto auto;align-items:center;gap:1.5rem;padding:1.25rem 1.5rem;border:1px solid var(--border);background:var(--card);transition:all 0.2s"
+     onmouseover="this.style.borderColor='rgba(0,229,255,0.25)'" onmouseout="this.style.borderColor='var(--border)'">
+  <span class="badge badge-{{ t.status }}">
+    {% if t.status == 'ongoing' %}<span class="pulse" style="margin-right:0.4rem"></span>{% endif %}
+    {{ t.get_status_display }}
+  </span>
+  <div>
+    <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.05rem">{{ t.name }}</div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:0.75rem;color:var(--muted);margin-top:0.2rem">
+      {{ t.game.name }}{% if t.location %} &bull; {{ t.location }}{% endif %}
+      {% if t.start_date %} &bull; {{ t.start_date|date:"M d, Y" }}{% endif %}
+    </div>
+  </div>
+  {% if t.prize_pool %}
+  <span style="font-family:'Orbitron',monospace;font-size:0.9rem;color:var(--accent)">{{ t.prize_pool }}</span>
+  {% endif %}
+  <span style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;color:var(--muted)">{{ t.matches.count }} matches →</span>
+</div>
+</a>
+{% empty %}
+<div style="text-align:center;padding:5rem;color:var(--muted)">
+  No tournaments yet. <a href="/admin/tournaments/tournament/add/" style="color:var(--accent)">Add one in admin →</a>
+</div>
+{% endfor %}
+</div>
+
+{% endblock %}

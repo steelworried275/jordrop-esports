@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ game.name }} Players — JORDROP{% endblock %}
+{% block content %}
+<style>:root { --accent: {{ game.accent_color }}; }</style>
+
+<div class="page-header">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">
+    <a href="/game/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">{{ game.name }}</a> / Players
+  </div>
+  <h1>Players</h1>
+  <p>{{ players.count }} players in {{ game.name }}</p>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>IGN</th>
+      <th>Real Name</th>
+      <th>Team</th>
+      <th>Role</th>
+      <th>Country</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for player in players %}
+    <tr>
+      <td style="color:var(--muted);font-family:'Orbitron',monospace;font-size:0.75rem">{{ forloop.counter }}</td>
+      <td>
+        <span style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;color:var(--accent)">{{ player.ign }}</span>
+      </td>
+      <td style="color:var(--muted)">{{ player.real_name|default:"—" }}</td>
+      <td>
+        {% if player.team %}
+        <span style="font-family:'Rajdhani',sans-serif;font-weight:600">{{ player.team.name }}</span>
+        {% else %}—{% endif %}
+      </td>
+      <td>
+        {% if player.role %}
+        <span class="badge badge-ongoing" style="font-size:0.65rem">{{ player.role }}</span>
+        {% else %}—{% endif %}
+      </td>
+      <td style="color:var(--muted)">{{ player.country|default:"—" }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--muted)">
+      No players yet. <a href="/admin/games/player/add/" style="color:var(--accent)">Add players in admin →</a>
+    </td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

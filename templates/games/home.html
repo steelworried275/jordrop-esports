@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}JORDROP — Esports Hub{% endblock %}
+{% block content %}
+
+<style>
+.hero {
+  position: relative; text-align: center;
+  padding: 6rem 1rem 5rem; overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  pointer-events: none;
+}
+.hero-glow {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 700px; height: 350px;
+  background: radial-gradient(ellipse, rgba(0,229,255,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.75rem;
+  font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.75rem;
+  text-transform: uppercase; letter-spacing: 4px;
+  color: var(--accent); margin-bottom: 1.75rem;
+}
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: ''; display: block; width: 30px; height: 1px; background: var(--accent); opacity: 0.5;
+}
+.hero h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2.8rem, 7vw, 6rem);
+  font-weight: 900; line-height: 0.95;
+  letter-spacing: -1px; margin-bottom: 1.75rem;
+}
+.hero h1 .line1 { display: block; color: var(--text); }
+.hero h1 .line2 {
+  display: block;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-sub { color: var(--muted); font-size: 1rem; max-width: 480px; margin: 0 auto 2.5rem; line-height: 1.7; }
+.hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+.stats-bar {
+  display: flex; justify-content: center; margin: 3rem 0;
+  border: 1px solid var(--border); background: var(--card); overflow: hidden;
+}
+.stat-item {
+  flex: 1; text-align: center; padding: 1.5rem 1rem;
+  border-right: 1px solid var(--border); position: relative;
+}
+.stat-item:last-child { border-right: none; }
+.stat-item::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.stat-item:hover::after { opacity: 1; }
+.stat-num {
+  font-family: 'Orbitron', monospace; font-size: 2rem; font-weight: 700;
+  color: var(--accent); display: block;
+}
+.stat-label {
+  font-family: 'Rajdhani', sans-serif; font-size: 0.7rem; text-transform: uppercase;
+  letter-spacing: 2px; color: var(--muted); margin-top: 0.25rem; display: block;
+}
+
+.game-card {
+  display: block; position: relative;
+  border: 1px solid var(--border);
+  text-decoration: none; color: var(--text);
+  overflow: hidden; transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  background: var(--bg2); aspect-ratio: 4/3;
+}
+.game-card:hover {
+  border-color: var(--gc, var(--accent));
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--gc, var(--accent));
+}
+.game-card:hover .game-card-overlay { opacity: 1; }
+.game-card:hover .game-card-logo { transform: scale(1.08); }
+.game-card:hover .game-card-bar { transform: scaleX(1); }
+.game-card-overlay {
+  position: absolute; inset: 0; opacity: 0; transition: opacity 0.35s;
+  background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%);
+  z-index: 1;
+}
+.game-card-color {
+  position: absolute; inset: 0; opacity: 0.08;
+  background: var(--gc, var(--accent));
+  z-index: 0;
+}
+.game-card-logo {
+  position: absolute; top: 1.25rem; left: 1.25rem;
+  width: 60px; height: 60px; object-fit: contain; z-index: 3;
+  transition: transform 0.35s;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.7));
+}
+.game-card-emoji { position: absolute; top: 1.25rem; left: 1.25rem; font-size: 2.5rem; z-index: 3; }
+.game-card-body {
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 1.25rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 4;
+}
+.game-card-name {
+  font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.85rem;
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.3rem;
+}
+.game-card-meta {
+  font-family: 'Rajdhani', sans-serif; font-size: 0.75rem;
+  color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 1px;
+}
+.game-card-bar {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: var(--gc, var(--accent));
+  transform: scaleX(0); transform-origin: left; transition: transform 0.35s; z-index: 5;
+}
+
+.tournament-row {
+  display: flex; align-items: center; gap: 1.5rem;
+  padding: 1rem 1.25rem; border: 1px solid var(--border);
+  margin-bottom: 0.5rem; background: var(--card);
+  transition: all 0.2s; text-decoration: none; color: var(--text);
+  position: relative; overflow: hidden;
+}
+.tournament-row::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom; transition: transform 0.25s;
+}
+.tournament-row:hover { background: rgba(0,229,255,0.02); border-color: rgba(0,229,255,0.2); }
+.tournament-row:hover::before { transform: scaleY(1); }
+.game-pill {
+  font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 0.7rem;
+  text-transform: uppercase; letter-spacing: 1px; padding: 0.2rem 0.6rem;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  color: var(--muted); white-space: nowrap;
+}
+.t-name { font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 1rem; flex: 1; }
+.t-prize { font-family: 'Orbitron', monospace; font-size: 0.85rem; color: var(--accent); white-space: nowrap; }
+.pulse {
+  display: inline-block; width: 7px; height: 7px;
+  background: var(--accent); border-radius: 50%;
+  animation: pulse 2s infinite; margin-right: 0.4rem;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(0,229,255,0); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fu  { animation: fadeUp 0.6s ease both; }
+.fu1 { animation-delay: 0.05s; }
+.fu2 { animation-delay: 0.15s; }
+.fu3 { animation-delay: 0.25s; }
+.fu4 { animation-delay: 0.35s; }
+.fu5 { animation-delay: 0.45s; }
+</style>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-eyebrow fu">The Competitive Hub</div>
+  <h1 class="fu fu1">
+    <span class="line1">DOMINATE</span>
+    <span class="line2">THE SCENE</span>
+  </h1>
+  <p class="hero-sub fu fu2">Stats, teams, tournaments and wiki for the world's top esports titles.</p>
+  <div class="hero-actions fu fu3">
+    <a href="/tournaments/" class="btn">View Tournaments</a>
+    {% if not user.is_authenticated %}
+    <a href="/accounts/register/" class="btn btn-red">Join Community</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar fu fu4">
+  <div class="stat-item">
+    <span class="stat-num">{{ games|length }}</span>
+    <span class="stat-label">Games</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">
+      {% with t=0 %}{% for g in games %}{% endfor %}{{ games|length }}{% endwith %}
+    </span>
+    <span class="stat-label">Teams</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">{{ recent_tournaments|length }}</span>
+    <span class="stat-label">Live Events</span>
+  </div>
+</div>
+
+<!-- GAMES GRID -->
+{% if games %}
+<div class="fu fu5">
+  <div class="section-title">Select Your Game</div>
+  <div class="card-grid">
+    {% for game in games %}
+    <a href="/game/{{ game.slug }}/" class="game-card" style="--gc: {{ game.accent_color }}">
+      <div class="game-card-color"></div>
+      <div class="game-card-overlay"></div>
+      {% if game.logo %}
+        <img src="{{ game.logo.url }}" class="game-card-logo" alt="{{ game.name }}">
+      {% else %}
+        <span class="game-card-emoji">🎮</span>
+      {% endif %}
+      <div class="game-card-body">
+        <div class="game-card-name">{{ game.name }}</div>
+        <div class="game-card-meta">{{ game.teams.count }} Teams &bull; {{ game.players.count }} Players</div>
+      </div>
+      <div class="game-card-bar"></div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- TOURNAMENTS -->
+{% if recent_tournaments %}
+<div style="margin-top: 4rem">
+  <div class="section-title">Active Tournaments</div>
+  {% for t in recent_tournaments %}
+  <a href="/tournaments/{{ t.pk }}/" class="tournament-row">
+    <span class="badge badge-{{ t.status }}">
+      {% if t.status == 'ongoing' %}<span class="pulse"></span>{% endif %}
+      {{ t.get_status_display }}
+    </span>
+    <span class="game-pill">{{ t.game.name }}</span>
+    <span class="t-name">{{ t.name }}</span>
+    {% if t.prize_pool %}<span class="t-prize">{{ t.prize_pool }}</span>{% endif %}
+    <span style="color:var(--muted);font-size:0.85rem">→</span>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

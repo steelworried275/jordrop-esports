@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ game.name }} Teams — JORDROP{% endblock %}
+{% block content %}
+<style>:root { --accent: {{ game.accent_color }}; }</style>
+
+<div class="page-header">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">
+    <a href="/game/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">{{ game.name }}</a> / Teams
+  </div>
+  <h1>Teams</h1>
+  <p>{{ teams.count }} teams competing in {{ game.name }}</p>
+</div>
+
+<div class="card-grid">
+  {% for team in teams %}
+  <div class="card">
+    <div class="card-accent" style="background: {{ game.accent_color }}"></div>
+    <div class="card-tag">{{ team.country|default:"International" }}</div>
+    <h3>{{ team.name }}</h3>
+    <p>{{ team.bio|truncatewords:15|default:"Professional esports team." }}</p>
+    <div style="margin-top:1rem;font-family:'Rajdhani',sans-serif;font-size:0.8rem;color:var(--muted)">
+      {{ team.players.count }} players
+      {% if team.founded %}&bull; Est. {{ team.founded }}{% endif %}
+    </div>
+    {% if team.players.all %}
+    <div style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.4rem">
+      {% for p in team.players.all|slice:":5" %}
+      <span style="font-family:'Rajdhani',sans-serif;font-size:0.75rem;padding:0.15rem 0.5rem;border:1px solid var(--border);color:var(--muted)">{{ p.ign }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% empty %}
+  <div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--muted)">
+    No teams added yet. <a href="/admin/games/team/add/" style="color:var(--accent)">Add teams in admin →</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
