@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}JORDROP — Esports Hub{% endblock %}
+{% block content %}
+<style>
+.hero { position:relative;text-align:center;padding:6rem 1rem 5rem;overflow:hidden; }
+.hero-grid { position:absolute;inset:0;background-image:linear-gradient(rgba(0,229,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.04) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);pointer-events:none; }
+.hero h1 { font-family:'Orbitron',monospace;font-size:clamp(2.8rem,7vw,6rem);font-weight:900;line-height:0.95;margin-bottom:1.75rem; }
+.hero h1 .line1 { display:block;color:var(--text); }
+.hero h1 .line2 { display:block;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.hero-sub { color:var(--muted);font-size:1rem;max-width:480px;margin:0 auto 2.5rem;line-height:1.7; }
+.hero-actions { display:flex;gap:1rem;justify-content:center;flex-wrap:wrap; }
+.stats-bar { display:flex;justify-content:center;margin:3rem 0;border:1px solid var(--border);background:var(--card);overflow:hidden; }
+.stat-item { flex:1;text-align:center;padding:1.5rem 1rem;border-right:1px solid var(--border); }
+.stat-item:last-child { border-right:none; }
+.stat-num { font-family:'Orbitron',monospace;font-size:2rem;font-weight:700;color:var(--accent);display:block; }
+.stat-label { font-family:'Rajdhani',sans-serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-top:0.25rem;display:block; }
+.game-card { display:block;position:relative;border:1px solid var(--border);text-decoration:none;color:var(--text);overflow:hidden;transition:all 0.35s;background:var(--bg2);aspect-ratio:4/3; }
+.game-card:hover { border-color:var(--gc,var(--accent));transform:translateY(-5px);box-shadow:0 12px 40px rgba(0,0,0,0.5); }
+.game-card-body { position:absolute;bottom:0;left:0;right:0;padding:1.25rem;background:linear-gradient(transparent,rgba(0,0,0,0.9));z-index:4; }
+.game-card-name { font-family:'Orbitron',monospace;font-weight:700;font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:0.3rem; }
+.game-card-meta { font-family:'Rajdhani',sans-serif;font-size:0.75rem;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px; }
+.game-card-bar { position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gc,var(--accent));transform:scaleX(0);transform-origin:left;transition:transform 0.35s;z-index:5; }
+.game-card:hover .game-card-bar { transform:scaleX(1); }
+</style>
+
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.75rem;text-transform:uppercase;letter-spacing:4px;color:var(--accent);margin-bottom:1.75rem">The Competitive Hub</div>
+  <h1><span class="line1">DOMINATE</span><span class="line2">THE SCENE</span></h1>
+  <p class="hero-sub">Stats, teams, tournaments and wiki for the world's top esports titles.</p>
+  <div class="hero-actions">
+    <a href="/tournaments/" class="btn">View Tournaments</a>
+    {% if not user.is_authenticated %}
+    <a href="/accounts/register/" class="btn btn-red">Join Community</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item"><span class="stat-num">{{ games|length }}</span><span class="stat-label">Games</span></div>
+  <div class="stat-item"><span class="stat-num">{{ recent_tournaments|length }}</span><span class="stat-label">Live Events</span></div>
+</div>
+
+{% if games %}
+<div class="section-title">Select Your Game</div>
+<div class="card-grid" style="margin-bottom:3rem">
+  {% for game in games %}
+  <a href="/game/{{ game.slug }}/" class="game-card" style="--gc: {{ game.accent_color }}">
+    <div style="position:absolute;inset:0;opacity:0.08;background:var(--gc)"></div>
+    <span style="position:absolute;top:1.25rem;left:1.25rem;font-size:2.5rem;z-index:3">🎮</span>
+    <div class="game-card-body">
+      <div class="game-card-name">{{ game.name }}</div>
+      <div class="game-card-meta">{{ game.teams.count }} Teams &bull; {{ game.players.count }} Players</div>
+    </div>
+    <div class="game-card-bar"></div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if recent_tournaments %}
+<div style="margin-top:4rem">
+  <div class="section-title">Active Tournaments</div>
+  {% for t in recent_tournaments %}
+  <a href="/tournaments/{{ t.pk }}/" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;border:1px solid var(--border);background:var(--card);margin-bottom:0.5rem;text-decoration:none;color:inherit;transition:border-color 0.2s"
+     onmouseover="this.style.borderColor='rgba(0,229,255,0.25)'" onmouseout="this.style.borderColor='var(--border)'">
+    <span class="badge badge-{{ t.status }}">{{ t.get_status_display }}</span>
+    <span style="font-family:'Rajdhani',sans-serif;font-size:0.75rem;padding:0.2rem 0.6rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted)">{{ t.game.name }}</span>
+    <span style="font-family:'Rajdhani',sans-serif;font-weight:600;font-size:1rem;flex:1">{{ t.name }}</span>
+    {% if t.prize_pool %}<span style="font-family:'Orbitron',monospace;font-size:0.85rem;color:var(--accent)">{{ t.prize_pool }}</span>{% endif %}
+    <span style="color:var(--muted);font-size:0.85rem">→</span>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

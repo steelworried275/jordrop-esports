@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Rev #{{ revision.revision_number }} — {{ page.title }} — JORDROP{% endblock %}
+{% block content %}
+<style>:root { --accent: {{ game.accent_color }}; }</style>
+
+<div class="page-header">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">
+    <a href="/wiki/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">Wiki</a>
+    / <a href="/wiki/{{ game.slug }}/{{ page.slug }}/" style="color:var(--accent);text-decoration:none">{{ page.title }}</a>
+    / <a href="/wiki/{{ game.slug }}/{{ page.slug }}/history/" style="color:var(--accent);text-decoration:none">History</a>
+    / Rev #{{ revision.revision_number }}
+  </div>
+  <h1>Revision #{{ revision.revision_number }}</h1>
+  <p>
+    By {{ revision.author.username|default:"Unknown" }} &bull;
+    {{ revision.created_at|date:"M d, Y H:i" }} UTC
+    {% if revision.edit_summary %}&bull; <em>{{ revision.edit_summary }}</em>{% endif %}
+  </p>
+</div>
+
+<div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+  <a href="/wiki/{{ game.slug }}/{{ page.slug }}/" class="btn btn-sm">← Current Version</a>
+  {% if is_current %}
+  <span class="badge badge-approved" style="display:flex;align-items:center">This is the current version</span>
+  {% else %}
+  {% if user.is_moderator %}
+  <form method="post" action="/wiki/{{ game.slug }}/{{ page.slug }}/history/{{ revision.revision_number }}/restore/">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm">Restore this revision</button>
+  </form>
+  {% endif %}
+  {% endif %}
+</div>
+
+<!-- Diff view -->
+{% if diff_lines %}
+<div class="section-title">Changes from previous revision</div>
+<pre style="background:var(--bg3);border:1px solid var(--border);padding:1rem;overflow-x:auto;font-size:0.8rem;line-height:1.6;margin-bottom:2rem">{% for line in diff_lines %}<span style="{% if line|slice:':1' == '+' %}color:#00e564{% elif line|slice:':1' == '-' %}color:var(--accent2){% elif line|slice:':2' == '@@' %}color:var(--accent){% else %}color:var(--muted){% endif %}">{{ line }}</span>
+{% endfor %}</pre>
+{% endif %}
+
+<!-- Content snapshot -->
+<div class="section-title">Content snapshot</div>
+<div class="wiki-content" style="line-height:1.85">{{ revision.content_rendered|safe }}</div>
+
+<style>
+.wiki-content h1,.wiki-content h2,.wiki-content h3{font-family:'Rajdhani',sans-serif;font-weight:700;margin:1.5rem 0 .75rem;color:var(--accent)}
+.wiki-content p{margin-bottom:1rem}
+.wiki-content ul,.wiki-content ol{margin:.75rem 0 .75rem 1.5rem}
+.wiki-content code{font-family:monospace;background:var(--bg3);padding:.15rem .4rem;font-size:.875rem}
+.wiki-content pre{background:var(--bg3);border:1px solid var(--border);padding:1rem;overflow-x:auto;margin:1rem 0}
+.wiki-content table{width:100%;border-collapse:collapse;margin:1rem 0}
+.wiki-content th,.wiki-content td{padding:.6rem 1rem;border:1px solid var(--border);text-align:left}
+.wiki-content th{background:var(--bg3);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.8rem;text-transform:uppercase;color:var(--muted)}
+.wiki-content blockquote{border-left:3px solid var(--accent);padding:.5rem 1rem;color:var(--muted);margin:1rem 0;background:var(--card)}
+</style>
+{% endblock %}

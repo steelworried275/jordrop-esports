@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }} — {{ game.name }} Wiki — JORDROP{% endblock %}
+{% block content %}
+<style>:root { --accent: {{ game.accent_color }}; }</style>
+
+<div style="max-width:900px">
+  <!-- Breadcrumb -->
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:1.5rem">
+    <a href="/game/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">{{ game.name }}</a>
+    / <a href="/wiki/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">Wiki</a>
+    / {{ page.title }}
+  </div>
+
+  <!-- Title + actions -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:2rem">
+    <h1 style="font-family:'Orbitron',monospace;font-size:2rem;font-weight:700">{{ page.title }}</h1>
+    <div style="display:flex;gap:0.75rem;flex-shrink:0">
+      <a href="/wiki/{{ game.slug }}/{{ page.slug }}/history/" class="btn btn-sm">History</a>
+      {% if user.is_contributor %}
+      <a href="/wiki/{{ game.slug }}/{{ page.slug }}/edit/" class="btn btn-sm">Edit</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Revision meta -->
+  {% if revision %}
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;color:var(--muted);margin-bottom:2rem;padding:0.75rem 1rem;border:1px solid var(--border);background:var(--card)">
+    Revision #{{ revision.revision_number }}
+    {% if revision.author %}&bull; by <strong style="color:var(--text)">{{ revision.author.username }}</strong>{% endif %}
+    &bull; {{ revision.created_at|date:"M d, Y H:i" }} UTC
+    {% if revision.edit_summary %}&bull; <em>{{ revision.edit_summary }}</em>{% endif %}
+  </div>
+
+  <!-- Content (pre-rendered Markdown → HTML) -->
+  <div class="wiki-content" style="line-height:1.85;color:var(--text)">
+    {{ revision.content_rendered|safe }}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:4rem;color:var(--muted);border:1px solid var(--border)">
+    This page has no content yet.
+    {% if user.is_contributor %}
+    <a href="/wiki/{{ game.slug }}/{{ page.slug }}/edit/" style="color:var(--accent);display:block;margin-top:0.5rem">Be the first to add content →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<style>
+.wiki-content h1, .wiki-content h2, .wiki-content h3 {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700; margin: 1.5rem 0 0.75rem;
+  color: var(--accent);
+}
+.wiki-content p { margin-bottom: 1rem; }
+.wiki-content ul, .wiki-content ol { margin: 0.75rem 0 0.75rem 1.5rem; }
+.wiki-content li { margin-bottom: 0.3rem; }
+.wiki-content code { font-family: monospace; background: var(--bg3); padding: 0.15rem 0.4rem; font-size: 0.875rem; }
+.wiki-content pre { background: var(--bg3); border: 1px solid var(--border); padding: 1rem; overflow-x: auto; margin: 1rem 0; }
+.wiki-content pre code { background: none; padding: 0; }
+.wiki-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.wiki-content th, .wiki-content td { padding: 0.6rem 1rem; border: 1px solid var(--border); text-align: left; }
+.wiki-content th { background: var(--bg3); font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--muted); }
+.wiki-content blockquote { border-left: 3px solid var(--accent); padding: 0.5rem 1rem; color: var(--muted); margin: 1rem 0; background: var(--card); }
+</style>
+{% endblock %}

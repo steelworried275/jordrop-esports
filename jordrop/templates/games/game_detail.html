@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ game.name }} — JORDROP{% endblock %}
+{% block accent %}{{ game.accent_color }}{% endblock %}
+{% block content %}
+<style>:root { --accent: {{ game.accent_color }}; }</style>
+
+<div style="display:flex;align-items:center;gap:3rem;padding:2.5rem 0 3rem;border-bottom:1px solid var(--border);margin-bottom:3rem">
+  <div>
+    <div style="font-family:'Orbitron',monospace;font-size:clamp(2rem,5vw,4rem);font-weight:900;letter-spacing:2px;color:var(--accent)">{{ game.name }}</div>
+    <p style="color:var(--muted);margin-top:0.75rem;max-width:500px">{{ game.description|default:"Explore teams, players and tournaments." }}</p>
+    <div style="display:flex;gap:2.5rem;margin-top:1.5rem">
+      {% for label, count in game.teams.count,game.players.count,game.tournaments.count %}{% endfor %}
+      <div style="text-align:center"><div style="font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:700;color:var(--accent)">{{ game.teams.count }}</div><div style="font-family:'Rajdhani',sans-serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)">Teams</div></div>
+      <div style="text-align:center"><div style="font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:700;color:var(--accent)">{{ game.players.count }}</div><div style="font-family:'Rajdhani',sans-serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)">Players</div></div>
+      <div style="text-align:center"><div style="font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:700;color:var(--accent)">{{ game.tournaments.count }}</div><div style="font-family:'Rajdhani',sans-serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)">Tournaments</div></div>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;gap:1rem;margin-bottom:3rem">
+  <a href="/game/{{ game.slug }}/teams/" class="btn">Teams</a>
+  <a href="/game/{{ game.slug }}/players/" class="btn">Players</a>
+  <a href="/tournaments/?game={{ game.slug }}" class="btn">Tournaments</a>
+  <a href="/wiki/{{ game.slug }}/" class="btn">Wiki</a>
+</div>
+
+{% if teams %}
+<div class="section-title">Teams</div>
+<div class="card-grid" style="margin-bottom:3rem">
+  {% for team in teams %}
+  <div class="card">
+    <div class="card-accent" style="background: {{ game.accent_color }}"></div>
+    <div class="card-tag">{{ team.country|default:"Global" }}</div>
+    <h3>{{ team.name }}</h3>
+    <p>{{ team.players.count }} players{% if team.founded %} &bull; Est. {{ team.founded }}{% endif %}</p>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if tournaments %}
+<div class="section-title">Tournaments</div>
+{% for t in tournaments %}
+<div style="display:flex;align-items:center;gap:1rem;padding:0.875rem 1rem;border:1px solid var(--border);margin-bottom:0.5rem;background:var(--card)">
+  <span class="badge badge-{{ t.status }}">{{ t.get_status_display }}</span>
+  <span style="font-family:'Rajdhani',sans-serif;font-weight:600;flex:1">{{ t.name }}</span>
+  {% if t.prize_pool %}<span style="font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--accent)">{{ t.prize_pool }}</span>{% endif %}
+  <a href="/tournaments/{{ t.pk }}/" class="btn btn-sm">View</a>
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}

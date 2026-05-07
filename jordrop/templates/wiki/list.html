@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ game.name }} Wiki — JORDROP{% endblock %}
+{% block content %}
+<style>:root { --accent: {{ game.accent_color }}; }</style>
+
+<div class="page-header">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">
+    <a href="/game/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">{{ game.name }}</a> / Wiki
+  </div>
+  <h1>{{ game.name }} Wiki</h1>
+  <p>{{ pages.count }} article{{ pages.count|pluralize }} in the knowledge base.</p>
+</div>
+
+{% if user.is_contributor %}
+<div style="margin-bottom:2rem">
+  <a href="/wiki/{{ game.slug }}/new/" class="btn">+ New Page</a>
+</div>
+{% endif %}
+
+<div class="card-grid">
+  {% for page in pages %}
+  <a href="{{ page.get_absolute_url }}" class="card">
+    <div class="card-accent"></div>
+    <div class="card-tag">Article</div>
+    <h3>{{ page.title }}</h3>
+    {% if page.current_revision %}
+    <p>{{ page.current_revision.content|truncatewords:20 }}</p>
+    <div style="margin-top:1rem;font-family:'Rajdhani',sans-serif;font-size:0.75rem;color:var(--muted)">
+      Rev #{{ page.current_revision.revision_number }}
+      {% if page.current_revision.author %}&bull; by {{ page.current_revision.author.username }}{% endif %}
+      &bull; {{ page.updated_at|date:"M d, Y" }}
+    </div>
+    {% endif %}
+  </a>
+  {% empty %}
+  <div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--muted)">
+    No articles yet.
+    {% if user.is_contributor %}
+    <a href="/wiki/{{ game.slug }}/new/" style="color:var(--accent);display:block;margin-top:0.5rem">Create the first page →</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

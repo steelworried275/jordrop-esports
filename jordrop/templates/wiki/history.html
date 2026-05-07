@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}History — {{ page.title }} — JORDROP{% endblock %}
+{% block content %}
+<style>:root { --accent: {{ game.accent_color }}; }</style>
+
+<div class="page-header">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">
+    <a href="/game/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">{{ game.name }}</a>
+    / <a href="/wiki/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">Wiki</a>
+    / <a href="/wiki/{{ game.slug }}/{{ page.slug }}/" style="color:var(--accent);text-decoration:none">{{ page.title }}</a>
+    / History
+  </div>
+  <h1>Revision History</h1>
+  <p>{{ revisions.count }} revision{{ revisions.count|pluralize }} for <strong>{{ page.title }}</strong></p>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Rev</th>
+      <th>Author</th>
+      <th>Summary</th>
+      <th>Date</th>
+      <th>Status</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for rev in revisions %}
+    <tr>
+      <td style="font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--accent)">#{{ rev.revision_number }}</td>
+      <td>{{ rev.author.username|default:"—" }}</td>
+      <td style="color:var(--muted)">{{ rev.edit_summary|default:"—" }}</td>
+      <td style="color:var(--muted);font-size:0.85rem">{{ rev.created_at|date:"M d, Y H:i" }}</td>
+      <td>
+        {% if page.current_revision_id == rev.pk %}
+        <span class="badge badge-approved">Current</span>
+        {% else %}
+        <span class="badge badge-finished">Old</span>
+        {% endif %}
+      </td>
+      <td style="display:flex;gap:0.5rem">
+        <a href="/wiki/{{ game.slug }}/{{ page.slug }}/history/{{ rev.revision_number }}/" class="btn btn-sm">View</a>
+        {% if user.is_moderator and page.current_revision_id != rev.pk %}
+        <form method="post" action="/wiki/{{ game.slug }}/{{ page.slug }}/history/{{ rev.revision_number }}/restore/" style="display:inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-red" onclick="return confirm('Restore to revision #{{ rev.revision_number }}?')">Restore</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--muted)">No revisions yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

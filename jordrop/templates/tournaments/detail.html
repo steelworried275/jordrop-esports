@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}{{ tournament.name }} — JORDROP{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">
+    <a href="/tournaments/" style="color:var(--accent);text-decoration:none">Tournaments</a> / {{ tournament.game.name }}
+  </div>
+  <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+    <h1>{{ tournament.name }}</h1>
+    <span class="badge badge-{{ tournament.status }}">{{ tournament.get_status_display }}</span>
+  </div>
+  <div style="display:flex;gap:2rem;margin-top:1rem;flex-wrap:wrap">
+    {% if tournament.prize_pool %}
+    <div>
+      <span style="font-family:'Rajdhani',sans-serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Prize Pool</span>
+      <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--accent)">{{ tournament.prize_pool }}</div>
+    </div>
+    {% endif %}
+    {% if tournament.location %}
+    <div>
+      <span style="font-family:'Rajdhani',sans-serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Location</span>
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:600;margin-top:0.2rem">{{ tournament.location }}</div>
+    </div>
+    {% endif %}
+    {% if tournament.start_date %}
+    <div>
+      <span style="font-family:'Rajdhani',sans-serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Dates</span>
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:600;margin-top:0.2rem">
+        {{ tournament.start_date|date:"M d" }} — {{ tournament.end_date|date:"M d, Y"|default:"TBD" }}
+      </div>
+    </div>
+    {% endif %}
+    <div>
+      <span style="font-family:'Rajdhani',sans-serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Format</span>
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:600;margin-top:0.2rem">{{ tournament.get_format_display }}</div>
+    </div>
+  </div>
+</div>
+
+{% if tournament.description %}
+<p style="color:var(--muted);margin-bottom:2.5rem;max-width:700px">{{ tournament.description }}</p>
+{% endif %}
+
+<!-- Bracket by round -->
+<div class="section-title">Bracket</div>
+
+{% if rounds %}
+<div style="display:flex;gap:1.5rem;overflow-x:auto;padding-bottom:1rem">
+  {% for round_num, round_data in rounds.items %}
+  <div style="min-width:260px">
+    <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:1rem;text-align:center">
+      {{ round_data.label }}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      {% for match in round_data.matches %}
+      <div style="border:1px solid var(--border);background:var(--card);padding:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+          <span style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.95rem;{% if match.is_finished and match.winner_id == match.team_a_id %}color:var(--accent){% endif %}">
+            {{ match.team_a.name|default:"TBD" }}
+          </span>
+          <span style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;{% if match.is_finished and match.winner_id == match.team_a_id %}color:var(--accent){% endif %}">
+            {{ match.score_a }}
+          </span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.95rem;{% if match.is_finished and match.winner_id == match.team_b_id %}color:var(--accent){% endif %}">
+            {{ match.team_b.name|default:"TBD" }}
+          </span>
+          <span style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;{% if match.is_finished and match.winner_id == match.team_b_id %}color:var(--accent){% endif %}">
+            {{ match.score_b }}
+          </span>
+        </div>
+        <div style="margin-top:0.5rem;text-align:center">
+          {% if match.is_finished %}
+          <span class="badge badge-finished" style="font-size:0.6rem">Final</span>
+          {% elif match.team_a and match.team_b %}
+          <span class="badge badge-upcoming" style="font-size:0.6rem">Scheduled</span>
+          {% else %}
+          <span class="badge badge-finished" style="font-size:0.6rem">Awaiting teams</span>
+          {% endif %}
+        </div>
+        {% if match.played_at %}
+        <div style="text-align:center;font-family:'Rajdhani',sans-serif;font-size:0.7rem;color:var(--muted);margin-top:0.25rem">{{ match.played_at|date:"M d, H:i" }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:4rem;color:var(--muted);border:1px solid var(--border)">
+  No matches scheduled yet.
+</div>
+{% endif %}
+{% endblock %}

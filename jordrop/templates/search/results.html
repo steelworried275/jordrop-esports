@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Search: {{ q }} — JORDROP{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1>Search Results</h1>
+  <p>{% if q %}Results for "<strong>{{ q }}</strong>"{% else %}Enter a query above to search.{% endif %}</p>
+</div>
+
+<!-- Search form (large, centered) -->
+<form action="/search/" method="get" style="display:flex;gap:0;margin-bottom:3rem;max-width:600px">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search pages, teams, players…"
+    style="flex:1;padding:0.875rem 1rem;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:0.95rem;outline:none">
+  <button type="submit" class="btn" style="border-left:none">Search</button>
+</form>
+
+{% if q %}
+  <!-- Wiki pages -->
+  {% if pages %}
+  <div class="section-title">Wiki Pages ({{ pages.count }})</div>
+  <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:2.5rem">
+    {% for page in pages %}
+    <a href="{{ page.get_absolute_url }}" style="text-decoration:none;color:inherit;display:block;padding:1rem 1.25rem;border:1px solid var(--border);background:var(--card);transition:all 0.2s"
+       onmouseover="this.style.borderColor='rgba(0,229,255,0.25)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;color:var(--accent)">{{ page.title }}</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:0.2rem">
+        {{ page.game.name }} Wiki
+        {% if page.current_revision %}&bull; Rev #{{ page.current_revision.revision_number }}{% endif %}
+      </div>
+      {% if page.current_revision %}
+      <div style="font-size:0.85rem;color:var(--muted);margin-top:0.4rem">{{ page.current_revision.content|truncatewords:25 }}</div>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Teams -->
+  {% if teams %}
+  <div class="section-title">Teams ({{ teams.count }})</div>
+  <div class="card-grid" style="margin-bottom:2.5rem">
+    {% for team in teams %}
+    <div class="card">
+      <div class="card-accent"></div>
+      <div class="card-tag">{{ team.game.name }}</div>
+      <h3>{{ team.name }}</h3>
+      <p>{{ team.country|default:"International" }} &bull; {{ team.players.count }} players</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Players -->
+  {% if players %}
+  <div class="section-title">Players ({{ players.count }})</div>
+  <table class="data-table">
+    <thead>
+      <tr><th>IGN</th><th>Real Name</th><th>Team</th><th>Game</th><th>Role</th></tr>
+    </thead>
+    <tbody>
+      {% for player in players %}
+      <tr>
+        <td style="font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--accent)">{{ player.ign }}</td>
+        <td style="color:var(--muted)">{{ player.real_name|default:"—" }}</td>
+        <td>{{ player.team.name|default:"—" }}</td>
+        <td style="color:var(--muted)">{{ player.game.name }}</td>
+        <td>{{ player.role|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if not pages and not teams and not players %}
+  <div style="text-align:center;padding:5rem;color:var(--muted);border:1px solid var(--border)">
+    No results found for "<strong>{{ q }}</strong>". Try different keywords.
+  </div>
+  {% endif %}
+{% endif %}
+
+{% endblock %}

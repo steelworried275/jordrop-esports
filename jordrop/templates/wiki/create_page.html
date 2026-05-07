@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}New Page — {{ game.name }} Wiki — JORDROP{% endblock %}
+{% block content %}
+<style>:root { --accent: {{ game.accent_color }}; }</style>
+
+<div class="page-header">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">
+    <a href="/wiki/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">{{ game.name }} Wiki</a> / New Page
+  </div>
+  <h1>Create New Page</h1>
+  <p>Pages you create are published immediately. Use Markdown for content.</p>
+</div>
+
+<div style="max-width:900px">
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="form-group">
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<div class="form-error">{{ field.errors.0 }}</div>{% endif %}
+      {% if field.help_text %}<div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">{{ field.help_text }}</div>{% endif %}
+    </div>
+    {% endfor %}
+    <div style="display:flex;gap:1rem;margin-top:1.5rem">
+      <button type="submit" class="btn">Create Page</button>
+      <a href="/wiki/{{ game.slug }}/" class="btn btn-red">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<style>
+textarea { font-family: 'Courier New', monospace; font-size: 0.875rem; resize: vertical; min-height: 400px; }
+</style>
+{% endblock %}

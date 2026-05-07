@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Profile — JORDROP{% endblock %}
+{% block content %}
+<div style="max-width:600px">
+  <div class="page-header">
+    <h1>{{ user.username }}</h1>
+    <p><span class="badge-role">{{ user.get_role_display }}</span></p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+    <div style="border:1px solid var(--border);background:var(--card);padding:1.25rem">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)">Edits Submitted</div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:700;color:var(--accent);margin-top:0.25rem">{{ user.edit_requests.count }}</div>
+    </div>
+    <div style="border:1px solid var(--border);background:var(--card);padding:1.25rem">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)">Revisions Created</div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:700;color:var(--accent);margin-top:0.25rem">{{ user.revisions.count }}</div>
+    </div>
+  </div>
+
+  <div class="section-title">Recent Edit Requests</div>
+  {% with edits=user.edit_requests.all|slice:":10" %}
+  {% if edits %}
+  <table class="data-table">
+    <thead><tr><th>Page</th><th>Status</th><th>Date</th></tr></thead>
+    <tbody>
+      {% for edit in edits %}
+      <tr>
+        <td><a href="{{ edit.page.get_absolute_url }}" style="color:var(--accent);text-decoration:none">{{ edit.page.title }}</a></td>
+        <td><span class="badge badge-{{ edit.status }}">{{ edit.get_status_display }}</span></td>
+        <td style="color:var(--muted);font-size:0.85rem">{{ edit.created_at|date:"M d, Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:var(--muted)">No edit requests yet.</p>
+  {% endif %}
+  {% endwith %}
+</div>
+{% endblock %}
