@@ -1,6 +1,22 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def env(name, default=''):
+    if name in os.environ:
+        return os.environ[name]
+    env_file = BASE_DIR / '.env'
+    if not env_file.exists():
+        return default
+    for line in env_file.read_text(encoding='utf-8').splitlines():
+        key, separator, value = line.partition('=')
+        if separator and key.strip() == name:
+            return value.strip().strip('"\'')
+    return default
+
+
 SECRET_KEY = 'django-insecure-jordrop-esports-dev-key-change-in-production'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
@@ -100,6 +116,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+GROQ_API_KEY = env('GROQ_API_KEY')
+GROQ_MODEL = env('GROQ_MODEL', 'llama-3.1-8b-instant')
+GROQ_CHAT_COMPLETIONS_URL = env(
+    'GROQ_CHAT_COMPLETIONS_URL',
+    'https://api.groq.com/openai/v1/chat/completions',
+)
+GROQ_REQUEST_TIMEOUT = int(env('GROQ_REQUEST_TIMEOUT', '20'))
 
 # Django REST Framework
 REST_FRAMEWORK = {

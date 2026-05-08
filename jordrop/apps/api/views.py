@@ -1,7 +1,14 @@
+import json
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.throttling import AnonRateThrottle
+from rest_framework.views import APIView
 
 from apps.games.models import Game, Team, Player
 from apps.wiki.models import Page, PageRevision, EditRequest
@@ -12,6 +19,93 @@ from .serializers import (
     TournamentSerializer, MatchSerializer,
 )
 from .permissions import IsModeratorOrAdmin, IsContributorOrReadOnly
+
+
+class GroqChatThrottle(AnonRateThrottle):
+    rate = '30/hour'
+
+
+class GroqChatView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    throttle_classes = [GroqChatThrottle]
+
+    def post(self, request):
+        message = str(request.data.get('message', '')).strip()
+        if not message:
+            return Response({'detail': 'Message is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(message) > 4000:
+            return Response(
+                {'detail': 'Message is too long. Please keep it under 4000 characters.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not settings.GROQ_API_KEY:
+            return Response(
+                {'detail': 'Groq is not configured. Set GROQ_API_KEY on the server.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        payload = {
+            'model': settings.GROQ_MODEL,
+            'messages': [
+                {
+                    'role': 'system',
+                    'content': (
+                        'You are the JORDROP esports assistant. Answer questions about '
+                        'esports, tournaments, teams, players, and wiki editing in a '
+                        'concise, practical way. If you do not know, say so.'
+                    ),
+                },
+                {'role': 'user', 'content': message},
+            ],
+            'temperature': 0.4,
+            'max_completion_tokens': 700,
+        }
+
+        groq_request = Request(
+            settings.GROQ_CHAT_COMPLETIONS_URL,
+            data=json.dumps(payload).encode('utf-8'),
+            headers={
+                'Authorization': f'Bearer {settings.GROQ_API_KEY}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'User-Agent': 'JORDROP-Esports/1.0',
+            },
+            method='POST',
+        )
+
+        try:
+            with urlopen(groq_request, timeout=settings.GROQ_REQUEST_TIMEOUT) as response:
+                result = json.loads(response.read().decode('utf-8'))
+        except HTTPError as exc:
+            detail = self._read_error_detail(exc)
+            return Response({'detail': detail}, status=exc.code)
+        except (URLError, TimeoutError, json.JSONDecodeError):
+            return Response(
+                {'detail': 'Groq request failed. Please try again.'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        answer = (
+            result.get('choices', [{}])[0]
+            .get('message', {})
+            .get('content', '')
+            .strip()
+        )
+        if not answer:
+            return Response(
+                {'detail': 'Groq returned an empty response.'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        return Response({'answer': answer, 'model': settings.GROQ_MODEL})
+
+    def _read_error_detail(self, exc):
+        try:
+            body = json.loads(exc.read().decode('utf-8'))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return 'Groq returned an error.'
+        return body.get('error', {}).get('message') or body.get('detail') or 'Groq returned an error.'
 
 
 class GameViewSet(viewsets.ReadOnlyModelViewSet):

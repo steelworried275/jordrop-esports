@@ -13,6 +13,7 @@ router.register('edit-requests', views.EditRequestViewSet)
 router.register('tournaments', views.TournamentViewSet)
 
 urlpatterns = [
+    path('ai/chat/', views.GroqChatView.as_view(), name='groq_chat'),
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('', include(router.urls)),
