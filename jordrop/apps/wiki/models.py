@@ -46,7 +46,8 @@ class Page(TimeStampedModel):
     def apply_revision(self, revision):
         """Atomically promote a PageRevision to be the live version."""
         self.current_revision = revision
-        self.save(update_fields=['current_revision', 'updated_at'])
+        self.is_published = True
+        self.save(update_fields=['current_revision', 'is_published', 'updated_at'])
 
 
 class PageRevision(TimeStampedModel):

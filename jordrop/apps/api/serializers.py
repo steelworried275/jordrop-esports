@@ -9,7 +9,7 @@ from apps.tournaments.models import Tournament, Match
 class GameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Game
-        fields = ['id', 'name', 'slug', 'accent_color', 'description', 'created_at']
+        fields = ['id', 'name', 'slug', 'accent_color', 'image_url', 'description', 'created_at']
 
 
 class TeamSerializer(serializers.ModelSerializer):
@@ -17,7 +17,8 @@ class TeamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Team
-        fields = ['id', 'name', 'slug', 'game', 'game_name', 'country', 'founded', 'bio']
+        fields = ['id', 'name', 'slug', 'game', 'game_name', 'country', 'founded', 'bio',
+                  'pandascore_id', 'image_url']
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -26,7 +27,8 @@ class PlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ['id', 'ign', 'real_name', 'game', 'game_name', 'team', 'team_name', 'country', 'role']
+        fields = ['id', 'ign', 'real_name', 'game', 'game_name', 'team', 'team_name',
+                  'country', 'role', 'pandascore_id', 'image_url']
 
 
 # ── Wiki ──────────────────────────────────────────────────────────────────────
@@ -89,4 +91,4 @@ class TournamentSerializer(serializers.ModelSerializer):
         model = Tournament
         fields = ['id', 'name', 'slug', 'game', 'game_name', 'format',
                   'status', 'prize_pool', 'location', 'start_date', 'end_date',
-                  'description', 'matches']
+                  'description', 'pandascore_id', 'matches']

@@ -8,7 +8,11 @@
     <a href="/wiki/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">{{ game.name }} Wiki</a> / New Page
   </div>
   <h1>Create New Page</h1>
+  {% if user.is_moderator %}
   <p>Pages you create are published immediately. Use Markdown for content.</p>
+  {% else %}
+  <p>Your page will be submitted to moderators and published only after approval.</p>
+  {% endif %}
 </div>
 
 <div style="max-width:900px">
@@ -23,7 +27,7 @@
     </div>
     {% endfor %}
     <div style="display:flex;gap:1rem;margin-top:1.5rem">
-      <button type="submit" class="btn">Create Page</button>
+      <button type="submit" class="btn">{% if user.is_moderator %}Create Page{% else %}Submit for Approval{% endif %}</button>
       <a href="/wiki/{{ game.slug }}/" class="btn btn-red">Cancel</a>
     </div>
   </form>

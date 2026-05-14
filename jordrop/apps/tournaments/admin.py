@@ -13,7 +13,7 @@ class MatchInline(admin.TabularInline):
 
 @admin.register(Tournament)
 class TournamentAdmin(admin.ModelAdmin):
-    list_display = ['name', 'game', 'format', 'status', 'prize_pool', 'start_date']
+    list_display = ['name', 'game', 'format', 'status', 'prize_pool', 'start_date', 'pandascore_id']
     list_filter = ['game', 'status', 'format']
     prepopulated_fields = {'slug': ('name',)}
     inlines = [MatchInline]

@@ -21,6 +21,10 @@
 .game-card-meta { font-family:'Rajdhani',sans-serif;font-size:0.75rem;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px; }
 .game-card-bar { position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gc,var(--accent));transform:scaleX(0);transform-origin:left;transition:transform 0.35s;z-index:5; }
 .game-card:hover .game-card-bar { transform:scaleX(1); }
+.contributor-tools { margin: 0 0 3rem; padding: 1.25rem; border: 1px solid var(--border); background: var(--card); }
+.contributor-tools-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
+.contributor-tools-title { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; color:var(--muted); }
+.contributor-tools-links { display:flex; gap:0.6rem; flex-wrap:wrap; }
 </style>
 
 <div class="hero">
@@ -41,13 +45,57 @@
   <div class="stat-item"><span class="stat-num">{{ recent_tournaments|length }}</span><span class="stat-label">Live Events</span></div>
 </div>
 
+{% if user.is_contributor and games %}
+<section class="contributor-tools">
+  <div class="contributor-tools-header">
+    <div>
+      <div class="contributor-tools-title">Contributor Tools</div>
+      <p style="color:var(--muted);font-size:0.9rem;margin-top:0.25rem">Create wiki pages or open a game wiki to edit existing articles.</p>
+    </div>
+    <a href="/wiki/{{ games.0.slug }}/" class="btn btn-sm">Open Wiki</a>
+  </div>
+  <div class="contributor-tools-links">
+    {% for game in games %}
+    <a href="/wiki/{{ game.slug }}/new/" class="btn btn-sm">New {{ game.name }} Page</a>
+    {% endfor %}
+  </div>
+  {% if pending_submissions %}
+  <div style="height:1px;background:var(--border);margin:1.25rem 0"></div>
+  <div class="contributor-tools-title" style="margin-bottom:0.75rem">Pending Approval</div>
+  <div style="display:flex;flex-direction:column;gap:0.65rem">
+    {% for edit in pending_submissions %}
+    <div style="display:grid;grid-template-columns:auto 1fr auto;gap:0.75rem;align-items:center;border:1px solid rgba(255,165,0,0.25);background:rgba(255,165,0,0.05);padding:0.85rem 1rem">
+      <span class="badge badge-pending">Pending</span>
+      <div>
+        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--text)">{{ edit.page.title }}</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:0.1rem">
+          {{ edit.page.game.name }} &bull;
+          {% if edit.page.is_published %}Edit waiting for mod approval{% else %}New article waiting for mod approval{% endif %}
+        </div>
+      </div>
+      <span style="font-family:'Rajdhani',sans-serif;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">{{ edit.created_at|date:"M d" }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
 {% if games %}
 <div class="section-title">Select Your Game</div>
 <div class="card-grid" style="margin-bottom:3rem">
   {% for game in games %}
   <a href="/game/{{ game.slug }}/" class="game-card" style="--gc: {{ game.accent_color }}">
     <div style="position:absolute;inset:0;opacity:0.08;background:var(--gc)"></div>
-    <span style="position:absolute;top:1.25rem;left:1.25rem;font-size:2.5rem;z-index:3">🎮</span>
+    <span style="position:absolute;top:1.25rem;left:1.25rem;width:64px;height:64px;z-index:3;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.18)">
+      {% if game.logo %}
+      <img src="{{ game.logo.url }}" alt="{{ game.name }}" style="width:100%;height:100%;object-fit:contain">
+      {% elif game.image_url %}
+      <img src="{{ game.image_url }}" alt="{{ game.name }}" style="width:100%;height:100%;object-fit:contain">
+      {% else %}
+      <span style="font-family:'Orbitron',monospace;font-size:1.1rem;color:var(--gc);font-weight:700">{{ game.name|slice:":2" }}</span>
+      {% endif %}
+    </span>
     <div class="game-card-body">
       <div class="game-card-name">{{ game.name }}</div>
       <div class="game-card-meta">{{ game.teams.count }} Teams &bull; {{ game.players.count }} Players</div>

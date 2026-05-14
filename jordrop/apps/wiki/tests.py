@@ -76,6 +76,25 @@ class EditRequestApproveTest(TestCase):
         self.assertEqual(PageRevision.objects.filter(page=self.page).count(), 1)
         self.assertIsNotNone(Page.objects.get(pk=self.page.pk).current_revision)
 
+    def test_approve_initial_page_submission_publishes_page(self):
+        page = Page.objects.create(
+            game=self.game,
+            title='New Agent',
+            slug='new-agent',
+            is_published=False,
+        )
+        edit = EditRequest.objects.create(
+            page=page,
+            author=self.contributor,
+            proposed_content='Initial page content',
+        )
+
+        edit.approve(self.moderator)
+        page.refresh_from_db()
+
+        self.assertTrue(page.is_published)
+        self.assertIsNotNone(page.current_revision)
+
 
 class RestoreRevisionTest(TestCase):
     def setUp(self):
@@ -129,6 +148,50 @@ class RBACViewTest(TestCase):
     def test_unauthenticated_submit_edit_is_denied(self):
         response = self.client.get(f'/wiki/cs2-rbac/nuke/edit/')
         self.assertEqual(response.status_code, 403)
+
+
+class CreatePageModerationTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.game = Game.objects.create(name='Counter-Strike 2', slug='cs2-create')
+        self.contributor = make_user('creator', User.CONTRIBUTOR)
+
+    def test_contributor_created_page_waits_for_approval(self):
+        self.client.login(username='creator', password='testpass123')
+        response = self.client.post('/wiki/cs2-create/new/', {
+            'title': 'Inferno',
+            'slug': 'inferno',
+            'is_published': 'on',
+            'content': 'Map page content',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        page = Page.objects.get(slug='inferno')
+        self.assertFalse(page.is_published)
+        self.assertIsNone(page.current_revision)
+        self.assertEqual(EditRequest.objects.filter(page=page, status=EditRequest.STATUS_PENDING).count(), 1)
+        self.assertEqual(PageRevision.objects.filter(page=page).count(), 0)
+
+    def test_contributor_sees_own_pending_submission_on_homepage_tools(self):
+        page = Page.objects.create(
+            game=self.game,
+            title='Train',
+            slug='train',
+            is_published=False,
+        )
+        EditRequest.objects.create(
+            page=page,
+            author=self.contributor,
+            proposed_content='Pending article content',
+        )
+
+        self.client.login(username='creator', password='testpass123')
+        response = self.client.get('/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Pending Approval')
+        self.assertContains(response, 'Train')
+        self.assertContains(response, 'New article waiting for mod approval')
 
 
 class SearchViewTest(TestCase):

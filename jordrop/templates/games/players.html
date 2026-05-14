@@ -1,31 +1,152 @@
 {% extends "base.html" %}
-{% block title %}{{ game.name }} Players — JORDROP{% endblock %}
+{% block title %}{{ game.name }} Players - JORDROP{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
 {% block content %}
 <style>:root { --accent: {{ game.accent_color }}; }</style>
-<div class="page-header">
-  <div style="font-family:'Rajdhani',sans-serif;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">
-    <a href="/game/{{ game.slug }}/" style="color:var(--accent);text-decoration:none">{{ game.name }}</a> / Players
+
+<section class="mb-8 border-b border-white/10 pb-6">
+  <div class="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+    <a href="/game/{{ game.slug }}/" class="text-cyan-300 no-underline hover:text-white">{{ game.name }}</a>
+    <span>/</span>
+    <span>Players</span>
   </div>
-  <h1>Players</h1>
-  <p>{{ players.count }} players in {{ game.name }}</p>
+
+  <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <h1 class="font-['Orbitron'] text-3xl font-black tracking-wide text-white md:text-5xl">Players</h1>
+      <p class="mt-2 max-w-2xl text-sm text-slate-400 md:text-base">
+        Live player records from PandaScore when configured, with a local wiki fallback for reliability.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 sm:flex">
+      <div class="border border-white/10 bg-white/[0.03] px-4 py-3">
+        <div class="text-xs uppercase tracking-[0.2em] text-slate-500">Showing</div>
+        <div class="font-['Orbitron'] text-2xl font-bold text-cyan-300">{{ players|length }}</div>
+      </div>
+      <div class="border border-white/10 bg-white/[0.03] px-4 py-3">
+        <div class="text-xs uppercase tracking-[0.2em] text-slate-500">Source</div>
+        <div class="text-sm font-semibold text-slate-100">{{ source_label }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if api_notice %}
+<div class="mb-5 border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+  {{ api_notice }} Showing {{ local_players_count }} local player{{ local_players_count|pluralize }}.
 </div>
-<table class="data-table">
-  <thead>
-    <tr><th>#</th><th>IGN</th><th>Real Name</th><th>Team</th><th>Role</th><th>Country</th></tr>
-  </thead>
-  <tbody>
-    {% for player in players %}
-    <tr>
-      <td style="color:var(--muted);font-family:'Orbitron',monospace;font-size:0.75rem">{{ forloop.counter }}</td>
-      <td><span style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;color:var(--accent)">{{ player.ign }}</span></td>
-      <td style="color:var(--muted)">{{ player.real_name|default:"—" }}</td>
-      <td>{% if player.team %}<span style="font-family:'Rajdhani',sans-serif;font-weight:600">{{ player.team.name }}</span>{% else %}—{% endif %}</td>
-      <td>{% if player.role %}<span class="badge badge-ongoing" style="font-size:0.65rem">{{ player.role }}</span>{% else %}—{% endif %}</td>
-      <td style="color:var(--muted)">{{ player.country|default:"—" }}</td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--muted)">No players yet.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+{% endif %}
+
+{% if api_error %}
+<div class="mb-5 border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+  {{ api_error }} Showing local wiki data instead.
+</div>
+{% endif %}
+
+<form method="get" class="mb-6 grid gap-3 border border-white/10 bg-white/[0.03] p-4 md:grid-cols-[1fr_auto]" data-loading-form>
+  <label class="sr-only" for="player-search">Search players</label>
+  <input
+    id="player-search"
+    type="search"
+    name="q"
+    value="{{ query }}"
+    placeholder="Search players, teams, roles, or countries"
+    class="min-h-11 w-full border border-white/10 bg-[#0d1117] px-4 text-sm text-white outline-none transition focus:border-cyan-300"
+  >
+  <button
+    type="submit"
+    class="min-h-11 border border-cyan-300 px-5 font-['Rajdhani'] text-sm font-bold uppercase tracking-[0.18em] text-cyan-300 transition hover:bg-cyan-300 hover:text-[#060810]"
+    data-loading-button
+  >
+    Search
+  </button>
+</form>
+
+{% if players %}
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+  {% for player in players %}
+  <article class="group overflow-hidden border border-white/10 bg-white/[0.03] transition hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-white/[0.05]">
+    <div class="flex gap-4 p-4">
+      <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-[#131924]">
+        {% if player.image_url %}
+        <img src="{{ player.image_url }}" alt="{{ player.handle }}" class="h-full w-full object-cover" loading="lazy">
+        {% else %}
+        <span class="font-['Orbitron'] text-xl font-bold text-cyan-300">{{ player.handle|slice:":1"|default:"?" }}</span>
+        {% endif %}
+      </div>
+
+      <div class="min-w-0 flex-1">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h2 class="truncate font-['Rajdhani'] text-xl font-bold leading-tight text-white">{{ player.handle }}</h2>
+            <p class="truncate text-sm text-slate-400">{{ player.real_name|default:"Name unavailable" }}</p>
+          </div>
+          <span class="shrink-0 border border-cyan-300/30 px-2 py-1 text-[0.65rem] font-bold uppercase tracking-widest text-cyan-300">
+            {{ player.source }}
+          </span>
+        </div>
+
+        <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <dt class="text-xs uppercase tracking-widest text-slate-500">Team</dt>
+            <dd class="truncate font-semibold text-slate-100">{{ player.team_name|default:"Free agent" }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-widest text-slate-500">Role</dt>
+            <dd class="truncate text-slate-300">{{ player.role|default:"Unknown" }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-widest text-slate-500">Country</dt>
+            <dd class="truncate text-slate-300">{{ player.country|default:"Unknown" }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-widest text-slate-500">Game</dt>
+            <dd class="truncate text-slate-300">{{ player.game_name|default:game.name }}</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+<div class="mt-8 flex flex-wrap items-center justify-between gap-3">
+  <div class="text-sm text-slate-500">Page {{ page_number }}</div>
+  <div class="flex gap-2">
+    {% if has_previous_page %}
+    <a href="?page={{ previous_page }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 no-underline hover:border-cyan-300 hover:text-cyan-300">Previous</a>
+    {% endif %}
+    {% if has_next_page %}
+    <a href="?page={{ next_page }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="border border-cyan-300 px-4 py-2 text-sm font-semibold text-cyan-300 no-underline hover:bg-cyan-300 hover:text-[#060810]">Next</a>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="border border-white/10 bg-white/[0.03] px-6 py-16 text-center">
+  <h2 class="font-['Rajdhani'] text-2xl font-bold text-white">No players found</h2>
+  <p class="mx-auto mt-2 max-w-md text-sm text-slate-400">
+    Try a different search, add local wiki players, or configure PandaScore live data with a server-side token.
+  </p>
+</div>
+{% endif %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('[data-loading-form]');
+    if (!form) return;
+
+    form.addEventListener('submit', function () {
+      var button = form.querySelector('[data-loading-button]');
+      if (!button) return;
+      button.disabled = true;
+      button.textContent = 'Loading';
+      button.classList.add('opacity-70', 'cursor-wait');
+    });
+  });
+</script>
 {% endblock %}

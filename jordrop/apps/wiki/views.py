@@ -3,6 +3,7 @@ import difflib
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.users.decorators import contributor_required, moderator_required
@@ -16,7 +17,10 @@ from apps.games.models import Game
 def wiki_list(request, game_slug):
     game = get_object_or_404(Game, slug=game_slug)
     pages = game.pages.filter(is_published=True).select_related('current_revision')
-    return render(request, 'wiki/list.html', {'game': game, 'pages': pages})
+    return render(request, 'wiki/list.html', {
+        'game': game,
+        'pages': pages,
+    })
 
 
 def page_detail(request, game_slug, slug):
@@ -94,19 +98,32 @@ def create_page(request, game_slug):
     if request.method == 'POST':
         form = PageForm(request.POST)
         if form.is_valid():
-            page = form.save(commit=False)
-            page.game = game
-            page.save()
-            # Create the initial revision immediately
-            revision = PageRevision.objects.create(
-                page=page,
-                author=request.user,
-                content=form.cleaned_data['content'],
-                edit_summary='Initial revision',
-            )
-            page.apply_revision(revision)
-            messages.success(request, f'Page "{page.title}" created.')
-            return redirect('wiki_detail', game_slug=game_slug, slug=page.slug)
+            with transaction.atomic():
+                page = form.save(commit=False)
+                page.game = game
+
+                if request.user.is_moderator:
+                    page.save()
+                    revision = PageRevision.objects.create(
+                        page=page,
+                        author=request.user,
+                        content=form.cleaned_data['content'],
+                        edit_summary='Initial revision',
+                    )
+                    page.apply_revision(revision)
+                    messages.success(request, f'Page "{page.title}" created.')
+                    return redirect('wiki_detail', game_slug=game_slug, slug=page.slug)
+
+                page.is_published = False
+                page.save()
+                EditRequest.objects.create(
+                    page=page,
+                    author=request.user,
+                    proposed_content=form.cleaned_data['content'],
+                    edit_summary='Initial page submission',
+                )
+                messages.success(request, f'Page "{page.title}" has been submitted for moderator approval.')
+                return redirect('wiki_list', game_slug=game_slug)
     else:
         form = PageForm()
     return render(request, 'wiki/create_page.html', {'game': game, 'form': form})

@@ -23,6 +23,7 @@ class Tournament(TimeStampedModel):
     ]
 
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='tournaments')
+    pandascore_id = models.PositiveIntegerField(null=True, blank=True)
     name = models.CharField(max_length=200)
     slug = models.SlugField()
     format = models.CharField(max_length=25, choices=FORMAT_CHOICES, default=FORMAT_SINGLE_ELIM)
