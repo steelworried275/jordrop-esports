@@ -26,6 +26,7 @@ The platform also includes a floating JORDROP AI chat widget that sends user pro
 - Django REST Framework
 - Simple JWT
 - SQLite for local development
+- HTML, CSS, and JavaScript
 - Markdown and Bleach for wiki rendering and sanitization
 - Pillow for uploaded images
 - Groq chat completions API
