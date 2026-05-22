@@ -1,0 +1,8 @@
+Django==4.2.30
+djangorestframework==3.17.1
+djangorestframework-simplejwt==5.5.1
+django-markdownx==4.0.9
+Markdown==3.10.2
+bleach==6.3.0
+Pillow==12.2.0
+-*
